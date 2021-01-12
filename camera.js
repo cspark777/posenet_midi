@@ -32,12 +32,12 @@ var g_pose_data_arr = [];
  *
  */
 async function setupCamera() {
-  /*
+  
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     throw new Error(
         'Browser API navigator.mediaDevices.getUserMedia not available');
   }
-*/
+
 
   const video = document.getElementById('video');
   video.width = videoWidth;
