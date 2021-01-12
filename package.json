@@ -54,5 +54,7 @@
   },
   "eslintIgnore": [
     "dist/"
-  ]
+  ],
+  "repository": "https://github.com/cspark777/posenet_midi.git",
+  "author": "Victor L <rhettb198501@hotmail.com>"
 }

@@ -38,6 +38,7 @@ async function setupCamera() {
         'Browser API navigator.mediaDevices.getUserMedia not available');
   }
 */
+
   const video = document.getElementById('video');
   video.width = videoWidth;
   video.height = videoHeight;
@@ -69,7 +70,7 @@ let stream;
     stream = null;
   }
   video.srcObject = stream;
-  */
+*/
 //-------------------------------
 
   return new Promise((resolve) => {
@@ -484,8 +485,8 @@ function send_pose_data(){
   
   if(g_pose_data_arr.length>0){
     var formData = new FormData(); 
-    var data_json = JSON.stringify(g_pose_data_arr);
-    formData.append("post_data_arr", data_json);
+    var data_json = JSON.stringify(g_pose_data_arr.pop()); //send only last pose data
+    formData.append("post_data", data_json);
     
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function()

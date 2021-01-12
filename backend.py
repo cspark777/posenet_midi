@@ -5,6 +5,8 @@ import json
 from pyo import *
 import random
 import time
+import threading 
+import winsound
 # Try to import MidiFile from the mido module. You can install mido with pip:
 #   pip install mido
 
@@ -13,6 +15,8 @@ try:
 except:
     print("The `mido` module must be installed to run this example!")
     exit()
+
+
 
 s = Server().boot().start()
 
@@ -31,45 +35,105 @@ CORS(app)
 def index():
     return "<h1>Hello, World!</h1>"
 
+
+
+
+
+g_post_data_arr = []
+
 @app.route('/posedata',  methods=['POST'])
 def posedata():
+    global g_post_data_arr
+    post_data_json = request.form.get("post_data")
+    post_data = json.loads(post_data_json)
     
-    post_data_arr_json = request.form.get("post_data_arr")
-    post_data_arr = json.loads(post_data_arr_json)
-    
-    print("==================================")
-    for d in post_data_arr:
+    g_post_data_arr.append(post_data)
 
-        keypoints = d["keypoints"]
+    print("----------- {} -------------".format(len(g_post_data_arr)))
 
-        lwx = 0
-        lwy = 0
-        for k in keypoints:
-            n = k["part"]
-            if n=="leftWrist":
-                lwx = lwx + k["position"]["x"]
-                lwy = lwy + k["position"]["y"]
 
+    keypoints = post_data["keypoints"]
         
+    lwx = 0
+    lwy = 0
+    for k in keypoints:
+        n = k["part"]
+        if n=="nose":
+            lwx = lwx + k["position"]["x"]
+            lwy = lwy + k["position"]["y"]
 
-        lw = lwx + lwy
+    lw = lwx + lwy
 
     lw = int(lw) % 256
-    print(lw)
 
+    fr = lw * 50 + 37
+    print(fr)     
+    winsound.Beep(fr, 200)
+
+    '''
     midi_data[0] = 128
     midi_data[1] = 100
     midi_data[2] = 20
     s.addMidiEvent(*midi_data)
-    
+    time.sleep(0.3)  
+
     midi_data[0] = 144
     midi_data[1] = lw
     midi_data[2] = 20
     s.addMidiEvent(*midi_data)
+    time.sleep(0.2)
+    '''
+    
 
-        
 
+    
     return "success";
 
+def generate_midi():
+    global g_post_data_arr
+    while True:
+        num = len(g_post_data_arr)
+        print("++++++++++++++ {} +++++++++++++++++".format(num))
+
+        if num == 0:
+            time.sleep(0.5)
+            continue
+
+        post_data = g_post_data_arr[-1]   
+
+        keypoints = post_data["keypoints"]
+        
+        lwx = 0
+        lwy = 0
+        for k in keypoints:
+            n = k["part"]
+            if n=="nose":
+                lwx = lwx + k["position"]["x"]
+                lwy = lwy + k["position"]["y"]
+
+        lw = lwx + lwy
+
+        lw = int(lw) % 256
+
+        print(lw)       
+
+        midi_data[0] = 144
+        midi_data[1] = lw
+        midi_data[2] = 20
+        s.addMidiEvent(*midi_data)
+        time.sleep(0.5)
+
+        midi_data[0] = 128
+        midi_data[1] = 100
+        midi_data[2] = 20
+        s.addMidiEvent(*midi_data)
+        time.sleep(0.5)
+
+
+
+
 if __name__ == '__main__':
+    #t1 = threading.Thread(target=generate_midi, args=()) 
+    #t1.start() 
+
     app.run(debug=True, host="0.0.0.0", port="8080", use_reloader=False,)
