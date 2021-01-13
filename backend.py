@@ -6,22 +6,21 @@ import random
 import time
 import os
 
-# Try to import MidiFile from the mido module. You can install mido with pip:
-#   pip install mido
+from pyo import *
+server = Server().boot()
+class PadSynth(EventInstrument):
+    def __init__(self, **args):
+        EventInstrument.__init__(self, **args)
 
-try:
-    import winsound
+        self.phase = Sine([self.freq, self.freq*1.003])
+ 
+        self.duty = Expseg([(0, 0.05), (self.dur, 0.5)], exp=4).play()
 
-    def beep_frequency(frequency, duration):
-        winsound.Beep(frequency, duration)
-        return
+        self.osc = Compare(self.phase, self.duty, mode="<", mul=1, add=-0.5)
 
-except:
-    
-    def beep_frequency(frequency, duration):        
-        os.system('play -n synth %s sin %s' % (duration/1000, frequency))
-        return
+        self.filt = Biquad(self.osc, freq=1500, q=1, mul=self.env).out()
 
+server.start()
 
 app = Flask(__name__)
 CORS(app)
@@ -49,9 +48,18 @@ def posedata():
 
     lw = int(lw) % 256
 
-    fr = lw * 50 + 37
-    print(fr)     
-    beep_frequency(fr, 200)
+    
+    print(lw)     
+    
+    c1 = Events(instr = PadSynth,
+           midinote = lw,
+           beat = 0.5, db = 32,
+           attack = 0.1, decay = 0.01, sustain = 0.5, release = 0.00001, bpm=120)
+
+    c1.play()
+    time.sleep(0.25)
+    c1.stop()
+
     
     return "success";
 
